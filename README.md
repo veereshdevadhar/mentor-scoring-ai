@@ -1,28 +1,32 @@
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 🧠 Mentor Scoring AI
+
 AI-Powered Video Analysis & Teaching Performance Evaluation
 
-FastAPI Backend • React Frontend • Whisper • LLaMA • MediaPipe • MongoDB
+FastAPI Backend • React (Vite) Frontend • Whisper • LLaMA (Ollama) • MediaPipe • MongoDB
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 🚀 Overview
 
-Mentor Scoring AI is a full-stack AI system designed to evaluate teaching performance from uploaded videos.
-The system automatically analyzes:
+Mentor Scoring AI is a full-stack application that automatically evaluates teaching/mentoring videos.
+It processes uploaded videos through an AI pipeline and returns:
 
-🎤 Voice clarity & audio quality
+🎤 Speech transcription & voice clarity metrics (Whisper)
 
-🎭 Facial expressions & engagement (MediaPipe)
+🎭 Visual engagement metrics (MediaPipe)
 
-📝 Speech transcription (Whisper)
+🧠 NLP insights & scoring (LLaMA via Ollama)
 
-🧠 NLP-based insights & teaching quality scoring (LLaMA)
+📊 Final scores, insights and an interactive dashboard
 
-📊 Performance scoring dashboard
+Flow: Upload video → AI pipeline → Scores & Insights → Dashboard
 
-📈 Leaderboard & mentor comparison analytics
-
-Mentors upload a video → AI pipeline processes → Results are shown in a clean, interactive frontend dashboard.
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 📁 Project Structure
+
 mentor-scoring-ai/
 │
 ├── backend/
@@ -45,28 +49,52 @@ mentor-scoring-ai/
 │
 └── README.md
 
-⚙️ Backend Setup (FastAPI)
-✔ Requires Python 3.11
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-(Whisper & scipy do NOT work properly on Python 3.12/3.13)
+⚙️ Prerequisites
 
-1️⃣ Create Virtual Environment
-cd backend
-py -3.11 -m venv venv
-venv\Scripts\activate
+Windows / macOS / Linux
 
-2️⃣ Install Dependencies
-pip install --upgrade pip
-pip install -r requirements.txt
-pip install openai-whisper
-pip install python-dotenv
-pip insatll MediaPipe
+Python 3.11 (recommended) — Whisper & some audio libs are problematic on Python 3.12+
 
-🔐 Environment Variables (Backend .env)
+Node.js (LTS, e.g. 18+) — for frontend
 
-Create a .env file inside backend/ with EXACTLY these contents:
+MongoDB Atlas or local MongoDB
 
-# Application
+FFmpeg (required for Whisper audio processing)
+
+Ollama (optional — required if you want local LLaMA scoring)
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+🔧 Backend Setup (FastAPI)
+1.Open a terminal / PowerShell, then:
+  cd backend
+
+2.Create & activate virtual environment (Windows PowerShell example)
+  py -3.11 -m venv venv
+  venv\Scripts\activate
+(Use python3 -m venv venv && source venv/bin/activate on macOS/Linux)
+
+3.Upgrade pip and install dependencies
+  python -m pip install --upgrade pip
+  pip install -r requirements.txt
+  pip install openai-whisper
+  pip install python-dotenv
+
+4.Install FFmpeg(optional)
+
+Download (Windows): https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip
+
+Extract to C:\ffmpeg then add C:\ffmpeg\bin to your PATH.
+
+On macOS: brew install ffmpeg
+
+On Linux: use your package manager apt, dnf, etc.
+
+5.Create .env file
+Create backend/.env with these exact contents (replace placeholders):
+  # Application
 APP_NAME=Mentor Scoring AI
 APP_VERSION=1.0.0
 DEBUG=True
@@ -92,113 +120,81 @@ WHISPER_DEVICE=cpu
 CORS_ORIGINS=["http://localhost:5173", "http://localhost:3000"]
 
 # Security
-SECRET_KEY=Shivarajnc189723056.189723056.
+SECRET_KEY=your_secret_key_here
 ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=30
 
-Notes:
+Notes
 
-Your MongoDB URL does NOT need URL encoding unless username/password contains special characters.
+If your MongoDB username or password contains special characters (e.g. @, :), percent-encode them (URL encoding) or use a connection string that avoids placing credentials in the URI.
 
-Whisper model can be tiny, base, small, etc.
+WHISPER_DEVICE=cpu ensures Whisper runs on CPU. Use cuda if you have a GPU and the proper PyTorch GPU build.
 
-Ollama must be installed locally to run LLaMA3.1 8B.
+OLLAMA_BASE_URL + OLLAMA_MODEL are used if you run Ollama locally for LLaMA scoring.
 
-Download Ollama:
-https://ollama.com/download
+6.Create uploads folders
+  mkdir uploads
+  mkdir uploads\videos
 
-Start Ollama server:
+7.Run backend
+  uvicorn app.main:app --reload --port 8000
+Open API docs: http://localhost:8000/docs
 
-ollama serve
-ollama pull llama3.1:8b
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-▶️ Run Backend
-uvicorn app.main:app --reload --port 8000
+🌐 Frontend Setup (React + Vite)
+1.Install Node.js (LTS): https://nodejs.org
+2.Install & run frontend
 
-
-Runs at:
-👉 http://localhost:8000
-
-Swagger Docs:
-👉 http://localhost:8000/docs
-
-🎨 Frontend Setup (React + Vite + Tailwind + shadcn/ui)
-1️⃣ Install Node.js LTS
-
-https://nodejs.org
-
-2️⃣ Install Frontend Dependencies
-cd frontendorg
+  cd frontendorg
 npm install
-
-3️⃣ Create .env inside frontendorg/
-VITE_API_URL=http://localhost:8000
-
-▶️ Run Frontend
+# create .env file (frontendorg/.env)
+# VITE_API_URL=http://localhost:8000
 npm run dev
 
+Frontend dev server default: http://localhost:5173
+If it opens on port 3000 use that — the backend CORS list includes both.
 
-Frontend runs at:
-👉 http://localhost:5173
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-🤖 AI Pipeline Architecture
-Video Upload
-    ↓
-Frame Extraction (OpenCV)
-    ↓
-Facial & Pose Analysis (MediaPipe)
-    ↓
-Audio Feature Extraction (Librosa)
-    ↓
-Whisper Speech Transcription
-    ↓
-NLP Evaluation (LLaMA through Ollama)
-    ↓
-Scoring Engine (Weighted metrics)
-    ↓
-MongoDB Storage
-    ↓
-Frontend Dashboard (Charts, Insights, Leaderboard)
+🧠 AI Components
+Whisper: speech-to-text transcription (installed via openai-whisper)
 
-📡 API Endpoints
-POST /upload
+Librosa / soundfile: audio features (MFCC, pitch, energy)
 
-Upload video for analysis.
+OpenCV + MediaPipe: frame processing and pose/facial landmarks
 
-GET /analysis/{id}
+Ollama + LLaMA (optional): local LLM scoring — requires Ollama installed and relevant model pulled
 
-Fetch specific analysis with transcript, scores & insights.
+Ollama quick start (if using LLaMA locally)
+# Install Ollama (follow https://ollama.com/download)
+# Start Ollama
+ollama serve
+# Pull model (example)
+ollama pull llama3.1:8b
 
-GET /analysis
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-List all analyses (pagination supported).
+📡 API Endpoints (summary)
+POST /api/analysis/upload — Upload a video (form-data: video, mentor_name, subject, optional mentor_id)
 
-🏆 Hackathon-Ready Features
+GET /api/analysis/{analysis_id} — Fetch results for an analysis
 
-✔ Fully modular backend
-✔ Modern frontend with Tailwind + shadcn
-✔ Real AI models integrated
-✔ Whisper transcription
-✔ LLaMA NLP scoring
-✔ Scoring engine with insights
-✔ MongoDB Atlas cloud storage
-✔ Production-level code structure
-✔ Professional documentation (this README)
+GET /api/analysis?skip=0&limit=10 — List analyses (pagination)
+(Use /docs for full interactive Swagger)
 
-🤝 Contributors
-
-Veeresh Devadhar — Full-stack development, AI pipeline, system design
-Shivukumar Naik - frontend development
-Shivarajgouda N C - Testing and validation
-Tharungowda K - Planning
-
-📄 License
-
-MIT License
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 🛠 Troubleshooting
-if you get any errors in installation then try this powershell installation script
-✅ PowerShell Installation Script
+NumPy/Scipy build errors: ensure Python 3.11 and use wheels — do not use Python 3.13+.
+
+Whisper errors / ffmpeg not found: install FFmpeg and add to PATH.
+
+MongoDB TLS / SSL errors: try adding tls=true or tlsAllowInvalidCertificates=true to the connection string for local testing only; prefer fixing network/SSL trust in production.
+
+Ollama errors: ensure ollama binary is installed and ollama serve running before calling model endpoints.
+
+✅ install.ps1 (Automated PowerShell installer)-> (if you get any trouble in installation use this script)
 Create a file named install.ps1 in the root of your project, and paste this:
 
 Write-Host "🚀 Mentor Scoring AI – Automated Installation Script" -ForegroundColor Cyan
@@ -277,7 +273,7 @@ WHISPER_DEVICE=cpu
 CORS_ORIGINS=["http://localhost:5173", "http://localhost:3000"]
 
 # Security
-SECRET_KEY=your_secret_key.
+SECRET_KEY=Shivarajnc189723056.189723056.
 ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=30
 "@ | Set-Content ".env"
@@ -338,19 +334,53 @@ Write-Host "  npm run dev"
 
 Write-Host "`n✨ Mentor Scoring AI is ready to run!"
 
-How to Use This Script?
+🧪 How Judges Use This Script
 Step 1 — Extract project
 mentor-scoring-ai/
 
 Step 2 — Run script
-
 Right-click → Run with PowerShell, or:
-
 powershell -ExecutionPolicy Bypass -File install.ps1
-
 
 Everything installs automatically.
 
-🏁 Final Notes
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+🤖 AI Pipeline Architecture
+
+🤖 AI Pipeline Architecture Video Upload -> Frame Extraction (OpenCV) -> Facial & Pose Analysis (MediaPipe) -> Audio Feature Extraction (Librosa) -> Whisper Speech Transcription -> NLP Evaluation (LLaMA through Ollama) -> Scoring Engine (Weighted metrics) -> MongoDB Storage -> Frontend Dashboard (Charts, Insights, Leaderboard)
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+🏆 Hackathon-Ready Features
+✔ Fully modular backend
+✔ Modern frontend with Tailwind + shadcn 
+✔ Real AI models integrated
+✔ Whisper transcription 
+✔ LLaMA NLP scoring 
+✔ Scoring engine with insights 
+✔ MongoDB Atlas cloud storage 
+✔ Production-level code structure 
+✔ Professional documentation (this README)
+
+🤝 Contributors
+Veeresh Devadhar — Full-stack development, AI pipeline, system design
+Shivukumar Naik - frontend development 
+Shivarajgouda N C - Testing and validation
+Tharungowda K - Planning
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+🏁 Final Notes
 This project is designed for production-level AI processing with clean modular architecture. If judges or users follow this README, they can run the entire system end-to-end smoothly.
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
