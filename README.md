@@ -377,6 +377,230 @@ This project is designed for production-level AI processing with clean modular a
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
+📄 Mentor Scoring AI – Technical Summary
+
+Team: Veeresh Devadhar, Shivukumar Naik, Shivarajgouda N C, Tharungowda K
+Project: AI-driven Teaching Performance Evaluation System
+Tech Stack: FastAPI, React, Whisper, MediaPipe, LLaMA (Ollama), MongoDB, Vite, Tailwind
+
+1. Problem Statement
+
+Traditional evaluation of teaching performance is subjective, time-consuming, and inconsistent, especially in large institutions.
+Manually reviewing teaching videos leads to:
+
+Lack of standardized scoring
+
+Biased evaluations
+
+No real-time actionable insights
+
+Difficulty comparing multiple mentors
+
+No automated feedback system
+
+Mentor Scoring AI solves this by using AI-driven multimodal video analysis to automatically evaluate teaching quality from uploaded videos.
+
+2. Approach and AI Components
+
+Our system processes a mentor’s teaching video through a full AI pipeline involving audio, video, and NLP intelligence.
+
+Core AI Components
+1️⃣ Whisper Speech-to-Text (Audio Analysis)
+
+Converts speech to text
+
+Extracts speech clarity, pace, articulation
+
+Generates transcript for NLP evaluation
+
+Evaluates filler words, pauses, interruptions
+
+2️⃣ MediaPipe Vision Pipeline (Visual Analysis)
+
+Detects body posture & gestures
+
+Facial expressions: engagement, confidence
+
+Measures movement stability vs. distraction
+
+Identifies visual teaching cues
+
+3️⃣ NLP Evaluation using LLaMA (via Ollama)
+
+Performs semantic analysis of teaching content
+
+Identifies explanation quality, clarity, structure
+
+Detects domain relevance & engagement level
+
+Generates meaningful insights
+
+Produces “Teaching Score” across key metrics
+
+4️⃣ Scoring Engine (Weighted AI Metrics)
+
+Combines Whisper, MediaPipe, and NLP outputs into a unified scoring model:
+
+Category	Sub-Metrics	Weight
+Audio Clarity	Pace, articulation, silence ratio	25%
+Visual Engagement	Eye contact, gestures, stability	30%
+Content Quality	NLP clarity, complexity analysis	35%
+Teaching Effectiveness	Overall delivery	10%
+5️⃣ MongoDB Storage
+
+Stores video metadata, analysis reports, NLP insights, visual/audio features
+
+Enables dashboards, leaderboard, mentor comparisons
+
+3. Technical Architecture
+
+Below is the high-level architecture of the system:
+
+🏗 Overall System Architecture
+Frontend (React + Vite + Tailwind)
+       |
+       v
+FastAPI Backend (Python)
+       |
+------------------------------------------------
+|                 AI Pipeline                   |
+|                                               |
+|  Whisper (Audio) → transcript → NLP (LLaMA)   |
+|  MediaPipe (Vision) → visual features         |
+|                                               |
+|       Scoring Engine → final scores           |
+------------------------------------------------
+       |
+       v
+MongoDB Atlas (Cloud Database)
+
+Backend Architecture (FastAPI)
+
+app/main.py starts the API server
+
+Routes: /upload, /analysis/{id}, /analysis
+
+Background task processes each uploaded video
+
+Modular services:
+
+ai_pipeline/whisper_transcription.py
+
+ai_pipeline/mediapipe_analysis.py
+
+ai_pipeline/llama_scoring.py
+
+analysis/video_processor.py
+
+analysis/scoring_engine.py
+
+Uses async processing with FastAPI BackgroundTasks for scalability.
+
+Frontend Architecture (React)
+
+Upload form
+
+Live analysis progress UI
+
+Results dashboard with:
+
+Radial charts
+
+Bar graphs
+
+Score gauges
+
+Leaderboard
+
+Mentor comparison analytics
+
+Frontend connects to backend via REST API.
+
+4. Challenges & Mitigations
+1️⃣ Challenge: Running Whisper & LLaMA without GPUs
+
+Whisper + LLaMA require GPU acceleration.
+
+Hackathon deployment platforms rarely provide free GPUs.
+
+Mitigation:
+
+Enabled CPU-mode Whisper + CPU-mode LLaMA (Ollama)
+
+Optimized video analysis to process lightweight clips
+
+Used batching & reduced model sizes (base, 8B)
+
+2️⃣ Challenge: MediaPipe models causing high processing time
+
+Mitigation:
+
+Process fewer frames per second
+
+Cache reusable components
+
+Optimized pre-processing
+
+3️⃣ Challenge: Full-stack deployment with AI models
+
+Mitigation:
+
+Created Docker-based backend with Ollama included
+
+Used Render/other cloud platforms to simulate deployment
+
+Provided local-run installation script for judges
+
+4️⃣ Challenge: Handling multiple file formats
+
+Mitigation:
+
+Validation for allowed video types
+
+Error handling for corrupted uploads
+
+5️⃣ Challenge: NLP scoring consistency
+
+Mitigation:
+
+Weighted scoring engine
+
+Normalization of metrics
+
+Prompt-engineering for LLaMA evaluation
+
+5. Roadmap to Final Build
+Phase 1 — Core AI Pipeline (Completed)
+
+✔ Whisper integration
+✔ MediaPipe visual analysis
+✔ LLaMA NLP scoring
+✔ Unified scoring engine
+✔ FastAPI backend
+
+Phase 2 — Frontend Dashboard (Completed)
+
+✔ Mentor dashboard
+✔ Upload page
+✔ Analytics graphs
+✔ Insights panel
+✔ Leaderboard
+
+Phase 3 — Deployment & Submission (Final Stage)
+
+✔ Docker backend created
+✔ Render deployment (in progress)
+✔ Netlify frontend deployment
+✔ Documentations & scripts included
+
+Phase 4 — Future Enhancements
+
+🔹 Real-time scoring (live teaching evaluation)
+🔹 Multi-language whisper transcription
+🔹 More advanced LLaMA model (70B)
+🔹 Mentor improvement recommendations
+🔹 Institution-level analytics dashboard
+
 
 
 
