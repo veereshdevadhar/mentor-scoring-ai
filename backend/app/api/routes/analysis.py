@@ -5,6 +5,7 @@ Analysis API Routes
 from fastapi import APIRouter, UploadFile, File, Form, HTTPException, BackgroundTasks
 import os
 import uuid
+import json
 from datetime import datetime
 
 from app.core.config import settings
@@ -26,14 +27,35 @@ async def upload_video(
 ):
     """Upload video for analysis"""
     
-    # Validate file extension
-    file_ext = video.filename.split('.')[-1].lower()
-    if file_ext not in settings.ALLOWED_EXTENSIONS.split(','):
+        # Validate file extension
+    file_ext = video.filename.rsplit('.', 1)[-1].lower()
+
+    allowed_raw = settings.ALLOWED_EXTENSIONS
+
+    # allowed_raw may be a JSON string (["mp4", ...]) or a comma string (mp4,avi,...)
+    if isinstance(allowed_raw, str):
+        try:
+            if allowed_raw.strip().startswith('['):
+                # JSON list in env
+                allowed_exts = json.loads(allowed_raw)
+            else:
+                # Comma-separated string
+                allowed_exts = [ext.strip() for ext in allowed_raw.split(',') if ext.strip()]
+        except Exception:
+            # Fallback – treat as comma-separated
+            allowed_exts = [ext.strip() for ext in allowed_raw.split(',') if ext.strip()]
+    else:
+        # Already a list/tuple
+        allowed_exts = list(allowed_raw)
+
+    allowed_exts = [ext.lower() for ext in allowed_exts]
+
+    if file_ext not in allowed_exts:
         raise HTTPException(
             status_code=400,
-            detail=f"Invalid file type. Allowed: {settings.ALLOWED_EXTENSIONS}"
+            detail=f"Invalid file type. Allowed: {allowed_exts}"
         )
-    
+
     # Generate unique filename
     analysis_id = str(uuid.uuid4())
     filename = f"{analysis_id}.{file_ext}"
